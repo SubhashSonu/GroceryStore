@@ -1,23 +1,30 @@
-import React, { useState } from 'react'
+import React, { use, useContext, useRef, useState } from 'react'
 import { navbarStyles } from '../assets/dummyStyles'
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png'
 import { navItems } from '../assets/Dummy';
-import { FiUser } from 'react-icons/fi';
+import { FiMenu, FiUser, FiX } from 'react-icons/fi';
+import { FaOpencart } from 'react-icons/fa';
+import { useCart } from '../CartContext';
 
 
 function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
+    const {cartCount} = useCart();
 
     const [scrolled, setScrolled] = useState(false);
     const [activeTab, setActiveTab] = useState(location.pathname);
     const [isOpen, setIsOpen] = useState(false);
     const [cartBounce , setCartBounce] = useState(false);
+    const prevCartCounterRef = useRef(cartCount);
+
     
     const [isLoggedIn, setIsLoggedIn] = useState(
         Boolean(localStorage.getItem('authToken'))
     );
+
+    const mobileMenuRef = useRef(null);
     // Define Logout Function
     const handleLogout = ()=>{
         localStorage.removeItem('authToken')
@@ -27,6 +34,7 @@ function Navbar() {
         navigate('/')
 
     }
+   
 
   return (
     <nav className={`${navbarStyles.nav}
@@ -104,14 +112,59 @@ function Navbar() {
                    }
 
                    <Link to='/cart' className={navbarStyles.cartLink}>
-                   <FaCart className={`${navbarStyles.cartIcon} ${cartBounce ? 
+                   <FaOpencart className={`${navbarStyles.cartIcon} ${cartBounce ? 
                     'animate-bounce' : ''
                    }`}/>
+
+                {cartCount > 0 && (
+                    <span className={navbarStyles.cartBadge}>{cartCount}</span>
+                )}
                    
                    </Link>
+
+                   <button onClick={ ()=>setIsOpen(!isOpen)}
+                    className={navbarStyles.hamburgerButton}
+                    aria-label={isOpen ? 'Close menu' : 'Open menu'}>
+                     {isOpen ? (
+                        <FiX className='h-6 w-6 text-white'/>
+                     ) :(
+                        <FiMenu className='h-6 w-6 text-white'/>
+                     )}
+                   </button>
                 </div>
             </div>
         </div>
+      
+         {/* {Moblie Menu Overlay} */}
+         <div className={`${navbarStyles.mobileOverlay}
+            ${isOpen ? 'pointer-events-auto opacity-100' :'pointer-events-none opacity-0'}
+            fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300`}
+            onClick={()=> setIsOpen(false)}>
+        <div className={`${navbarStyles.mobilePanel}
+            ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+            fixed right-0 top-0 bottom-0 z-50 w-4/5 max-w-sm`}
+            onClick={(e => e.stopPropagation())}
+            ref={mobileMenuRef}>
+                <div className={navbarStyles.mobileHeader}>
+                    <div className={navbarStyles.mobileLogo}>
+                        <div className={navbarStyles.mobileLogo}>
+                           <img src={logo} alt="logo" className={navbarStyles.mobileLogoImage}/>
+                           <span className={navbarStyles.closeButton}>GroceryStore</span>
+                        </div>
+
+                    </div>
+
+                    <button onClick={()=> setIsOpen(false)}
+                        className={navbarStyles.closeButton}
+                        aria-label='Close Menu'>
+                            <FiX className='h-6 w-6 text-white'/>
+
+                    </button>
+                </div>
+
+
+        </div>
+         </div>
         
     </nav>
   )
