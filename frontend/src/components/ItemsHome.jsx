@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { itemsHomeStyles } from "../assets/dummyStyles";
 import BannerHome from "./BannerHome";
 import { useNavigate } from "react-router-dom";
-import { FaThList } from "react-icons/fa";
+import { FaChevronRight, FaMinus, FaPlus, FaShoppingCart, FaThList } from "react-icons/fa";
 import { useCart } from "../CartContext";
 import { categories, products } from "../assets/dummyData";
 
 const ItemsHome = () => {
   const [activeCategory, setActiveCategory] = useState(() => {
-    return localStorage.getItem("activeCategory" || "All");
+    return localStorage.getItem("activeCategory") || "All";
   });
 
   useEffect(() => {
@@ -208,6 +208,42 @@ const ItemsHome = () => {
                         {product.name}
                       </h3>
                       <div className={itemsHomeStyles.priceContainer}>
+                        <div>
+                          <p className={itemsHomeStyles.currentPrice}>
+                            ₹{product.price.toFixed(2)}
+                          </p>
+                          <span className={itemsHomeStyles.oldPrice}>
+                            ₹{(product.price*1.2).toFixed(2)}
+                          </span>
+                        </div>
+
+                        {/* Add Controls */}
+                        {
+                          qty === 0 ? (
+                            <button onClick={() => handleIncrease(product)}
+                            className={itemsHomeStyles.addButton}>
+                                  <FaShoppingCart className="mr-2"/>
+                                  Add
+                            </button>
+                          ) :
+                          (
+                            <div className={itemsHomeStyles.quantityControls}>
+                              <button onClick={() =>handleDecrease(product)}
+                                className={itemsHomeStyles.quantityButton}>
+                                  <FaMinus/>
+                              </button>
+                              <span className="font-bold">
+                                {qty}
+                              </span>
+                              <button onClick={() =>  handleIncrease(product)}
+                                className={itemsHomeStyles.quantityButton}>
+                                  <FaPlus/>
+
+                              </button>
+
+                            </div>
+                          )
+                        }
 
                       </div>
 
@@ -218,8 +254,32 @@ const ItemsHome = () => {
 
                  )
               })
-             ) :{}}
+             ) : (
+              <div className={itemsHomeStyles.noProducts}>
+                <div className={itemsHomeStyles.npProductsText}>
+                  No Product Found
+                </div>
+
+                <button onClick={() =>setSearchTerm('')}
+                  className={itemsHomeStyles.clearSearchButton}>
+                    Clear Search
+                </button>
+              </div>
+             )}
            </div>
+
+           {/* View all button */}
+           {!searchTerm && (
+            <div className='text-center'>
+              <button onClick={redirectToItemsPage}
+              className={itemsHomeStyles.viewAllButton}>
+                View All {activeCategory === 'All' ? 'Products' : activeCategory}
+                   <FaChevronRight className="ml-3"/>
+
+              </button>
+
+            </div>
+           )}
         </main>
       </div>
     </div>
