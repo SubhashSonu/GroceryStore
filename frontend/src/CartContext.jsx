@@ -18,7 +18,11 @@ export const CartProvider = ({children}) =>{
     // sync cart to localstorage whenever it changes 
     useEffect(()=>{
         localStorage.setItem('cart',JSON.stringify(cart))
+        // console.log("Cart updated:", cart);
     },[cart])
+
+
+
 
     // add an item to cart or increase
 
@@ -61,7 +65,7 @@ export const CartProvider = ({children}) =>{
     const getCartTotal = () => cart.reduce((total,ci) => total + ci.price*ci.quantity,0)
 
     // Calculate total number of items in a cart
-     const cartCount = () => cart.reduce((count,ci) => count + ci.quantity,0)
+     const cartCount = cart.reduce((count,ci) => count + ci.quantity,0)
 
 
      return (

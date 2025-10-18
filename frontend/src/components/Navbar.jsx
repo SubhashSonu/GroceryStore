@@ -182,7 +182,12 @@ useEffect(()=>{
 
               {cartCount > 0 && (
                 <span className={navbarStyles.cartBadge}>{cartCount}</span>
+
               )}
+
+           
+
+
             </Link>
 
             <button
