@@ -3,7 +3,7 @@ import { bannerStyles } from "../assets/dummyStyles";
 import { FiSearch, FiTruck } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { features } from "../assets/Dummy";
-import BannerFood from "../assets/Foodbanner.png";
+import BannerFood from "../assets/FoodBanner.png";
 
 const BannerHome = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
