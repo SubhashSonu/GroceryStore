@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename)
 //Middleware
 app.use(cors({
     origin: (origin,callback)=>{
-        const allowedOrigins = ['http://localhost:5173','http://localhost:5174'];
+        const allowedOrigins = ['http://localhost:5173','https://grocerystore-admin.onrender.com'];
          // !origin- Allow requests with no origin (like Postman or server-to-server)
          // includes origin - Allow this origin
         if(!origin || allowedOrigins.includes(origin)){
