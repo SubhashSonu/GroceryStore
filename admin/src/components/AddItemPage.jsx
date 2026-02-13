@@ -16,10 +16,14 @@ const initialFormState = {
 const categories = [
   "Fruits",
   "Vegetables",
-  "Dairy & Eggs",
-  "Meat & Seafood",
+  "Dairy",
+  "Eggs",
+  "Meat",
+  "Seafood",
+  "Beverages",
   "Bakery",
   "Pantry",
+  "Snacks"
 ];
 
 const AddItemPage = () => {
