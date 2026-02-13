@@ -66,7 +66,7 @@ const AddItemPage = () => {
       }
 
       const res = await axios.post(
-        'http://localhost:4000/api/items',body,
+        'https://grocerystore-backend-57i5.onrender.com/api/items',body,
          {headers: {"Content-Type" : "multipart/form-data"},
         });
 

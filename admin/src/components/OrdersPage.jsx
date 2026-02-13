@@ -24,7 +24,7 @@ const OrdersPage = () => {
 
   const fetchOrders  = async()=>{
     try {
-      const {data} = await axios.get("http://localhost:4000/api/orders");
+      const {data} = await axios.get("https://grocerystore-backend-57i5.onrender.com/api/orders");
       setOrders(data);
       setFilteredOrders(data);
     } catch (error) {
@@ -59,7 +59,7 @@ const OrdersPage = () => {
   // update the order using id
   const updateOrderStatus = async(orderId, newStatus)=>{
     try {
-      await axios.put(`http://localhost:4000/api/orders/${orderId}`,{status: newStatus});
+      await axios.put(`https://grocerystore-backend-57i5.onrender.com/api/orders/${orderId}`,{status: newStatus});
       setOrders((prev)=>
       prev.map((order) =>
       order._id === orderId ? {...order, status: newStatus}: order));
@@ -370,7 +370,7 @@ const OrdersPage = () => {
                         {selectedOrder.items.map((item,index) =>(
                           <div key={item._id || index} className={styles.modalOrderItem(index, selectedOrder.items.length)}>
                             {item.imageUrl ? (
-                              <img src={`http://localhost:4000${item.imageUrl}`} alt={item.name} className={styles.modalOrderImage}/>
+                              <img src={`https://grocerystore-backend-57i5.onrender.com${item.imageUrl}`} alt={item.name} className={styles.modalOrderImage}/>
                             ) : (
                               <div className={styles.modalPlaceholderImage}/>
                             )}

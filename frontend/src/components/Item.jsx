@@ -8,7 +8,7 @@ import { groceryData } from "../assets/dummyDataItem";
 import axios from "axios";
 
 
-const BACKEND_URL = 'http://localhost:4000';
+const BACKEND_URL = 'https://grocerystore-backend-57i5.onrender.com';
 
 // ---------------- PRODUCT CARD ----------------
 const ProductCard = ({ item }) => {
