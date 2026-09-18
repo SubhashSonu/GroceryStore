@@ -41,8 +41,14 @@ export const CartProvider = ({ children }) => {
 
   
   useEffect(() => {
+  const token = localStorage.getItem("authToken");
+
+  if (token) {
     fetchCart();
-  }, []);
+  } else {
+    setLoading(false);
+  }
+}, []);
 
 
   useEffect(() => {
@@ -59,23 +65,38 @@ export const CartProvider = ({ children }) => {
     return () => window.removeEventListener("authStateChanged", handler);
   }, []);
 
-  const fetchCart = async () => {
-    try {
-      const { data } = await axios.get("https://grocerystore-backend-57i5.onrender.com/api/cart", {
-        ...getAuthHeader(),
-        withCredentials: true,
-      });
-      const rawItems = Array.isArray(data)
-        ? data
-        : data.items || data.cart?.items || [];
-      setCart(normalizeItems(rawItems));
-    } catch (error) {
-      console.error("Error fetching cart:", error.response?.data || error);
+const fetchCart = async () => {
+  const token = localStorage.getItem("authToken");
+
+  // Don't fetch cart if user is not logged in
+  if (!token) {
+    setCart([]);
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const { data } = await axios.get("http://localhost:4000/api/cart", {
+      ...getAuthHeader(),
+      withCredentials: true,
+    });
+
+    const rawItems = Array.isArray(data)
+      ? data
+      : data.items || data.cart?.items || [];
+
+    setCart(normalizeItems(rawItems));
+  } catch (error) {
+    console.error("Error fetching cart:", error.response?.data || error);
+
+    // Don't show toast for unauthorized user
+    if (error.response?.status !== 401) {
       toast.error("Failed to load cart");
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const addToCart = async (productId, quantity = 1) => {
     const prevCart = [...cart];
@@ -97,7 +118,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       const { data } = await axios.post(
-        "https://grocerystore-backend-57i5.onrender.com/api/cart",
+        "http://localhost:4000/api/cart",
         { productId, quantity: Number(quantity) },
         getAuthHeader()
       );
@@ -127,7 +148,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       await axios.put(
-        `https://grocerystore-backend-57i5.onrender.com/api/cart/${lineId}`,
+        `http://localhost:4000/api/cart/${lineId}`,
         { quantity },
         getAuthHeader()
       );
@@ -144,7 +165,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       await axios.delete(
-        `https://grocerystore-backend-57i5.onrender.com/api/cart/${lineId}`,
+        `http://localhost:4000/api/cart/${lineId}`,
         getAuthHeader()
       );
       toast.success("Item removed");
@@ -160,7 +181,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       await axios.post(
-        "https://grocerystore-backend-57i5.onrender.com/api/cart/clear",
+        "http://localhost:4000/api/cart/clear",
         {},
         getAuthHeader()
       );

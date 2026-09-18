@@ -15,6 +15,8 @@ import Checkout from './components/Checkout'
 import axios from "axios";
 import PaymentVerify from './pages/PaymentVerify'
 import OrderSuccess from './pages/OrderSuccess'
+import ForgotPassword from './components/ForgotPassword'
+import ResetPassword from './components/ResetPassword'
 
 axios.interceptors.response.use(
   (res) => res,
@@ -66,10 +68,12 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword/>} />
 
-        {/* ✅ CHANGE THIS */}
+       
         <Route path="/payment/verify" element={<PaymentVerify />} /> 
-        {/* ✅ SUCCESS PAGE */}
+      
         <Route path="/order-success" element={<OrderSuccess />} /> 
 
       </Routes>

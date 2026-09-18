@@ -1,16 +1,15 @@
 import nodemailer from "nodemailer";
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 export const sendOrderEmail = async (email, orderId, status, items, total) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-   
     const productRows = items
       .map(
         (item) => `
@@ -18,13 +17,13 @@ export const sendOrderEmail = async (email, orderId, status, items, total) => {
             <td style="padding:6px;border:1px solid #ddd;">${item.name}</td>
             <td style="padding:6px;border:1px solid #ddd;">${item.quantity}</td>
             <td style="padding:6px;border:1px solid #ddd;">₹${item.price.toFixed(
-              2
+              2,
             )}</td>
             <td style="padding:6px;border:1px solid #ddd;">₹${(
               item.price * item.quantity
             ).toFixed(2)}</td>
           </tr>
-        `
+        `,
       )
       .join("");
 
@@ -72,5 +71,84 @@ export const sendOrderEmail = async (email, orderId, status, items, total) => {
     console.log("Email sent to:", email);
   } catch (err) {
     console.log("Email error:", err.message);
+  }
+};
+
+export const sendOrderConfirmationEmail = async (order) => {
+  try {
+    await transporter.sendMail({
+      from: `"Fresh Grocery Store" <${process.env.EMAIL_USER}>`,
+      to: order.customer.email,
+      subject: "🎉 Order Confirmation",
+      text: `
+Hello ${order.customer.name},
+
+Thank you for your order!
+
+Order ID: ${order.orderId}
+
+We have received your order and will notify you once it is packed.
+
+Thanks,
+Fresh Grocery Store
+`,
+    });
+
+    console.log(`✅ Order confirmation email sent to ${order.customer.email}`);
+  } catch (error) {
+    console.error("Order Confirmation Email Error:", error);
+  }
+};
+
+export const sendWelcomeEmail = async (user) => {
+  try {
+    await transporter.sendMail({
+      from: `"Fresh Grocery Store" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "🎉 Welcome to Fresh Grocery Store",
+      text: `
+Hello ${user.name},
+
+Welcome to Fresh Grocery Store!
+
+Your account has been created successfully.
+
+We're excited to have you with us.
+
+Happy Shopping!
+
+Fresh Grocery Store Team
+`,
+    });
+  } catch (error) {
+    console.error("Welcome Email Error:", error);
+  }
+};
+
+export const sendOtpEmail = async (email, otp) => {
+  try {
+    await transporter.sendMail({
+      from: `"Fresh Grocery Store" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "🔐 Password Reset OTP",
+      text: `
+Hello,
+
+We received a request to reset your password.
+
+Your OTP is:
+
+${otp}
+
+This OTP is valid for 5 minutes.
+
+If you didn't request this password reset, you can safely ignore this email.
+
+Fresh Grocery Store Team
+`,
+    });
+    console.log(`✅ OTP email sent to ${email}`);
+  } catch (error) {
+    console.error("OTP Email Error:", error);
   }
 };

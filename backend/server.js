@@ -11,6 +11,11 @@ import itemRouter from './routes/productRoute.js';
 import authMiddleware from './middleware/auth.js';
 import cartRouter from './routes/cartRoute.js';
 import orderRouter from './routes/orderRoute.js';
+import { connectRabbitMq } from './rabbitmq/connection.js';
+import { startEmailConsumer } from './rabbitmq/consumers/emailConsumer.js';
+import { startWelcomeConsumer } from './rabbitmq/consumers/welcomeConsumer.js';
+import { startOtpConsumer } from './rabbitmq/consumers/otpConsumer.js';
+import { startOrderStatusConsumer } from './rabbitmq/consumers/orderStatusConsumer.js';
 
 const app = express()
 const port = process.env.PORT || 4000;
@@ -21,7 +26,7 @@ const __dirname = path.dirname(__filename)
 //Middleware
 app.use(cors({
     origin: (origin,callback)=>{
-        const allowedOrigins = ['https://grocerystore-frontend-deh5.onrender.com','https://grocerystore-admin.onrender.com'];
+        const allowedOrigins = ['https://grocerystore-frontend-deh5.onrender.com','https://grocerystore-admin.onrender.com',"http://localhost:5173","http://localhost:5174"];
          // !origin- Allow requests with no origin (like Postman or server-to-server)
          // includes origin - Allow this origin
         if(!origin || allowedOrigins.includes(origin)){
@@ -39,7 +44,6 @@ app.use(cors({
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-connectDB();
 
 
 // Routes
@@ -54,6 +58,28 @@ app.get('/', (req,res)=>{
 });
 
 
-app.listen(port,()=>{
-    console.log(`Server started on http://localhost:${port}`)
-})
+const startServer = async () => {
+    try {
+        await connectDB();
+
+        await connectRabbitMq();
+
+        await startEmailConsumer();
+
+        await startWelcomeConsumer();
+
+        await startOtpConsumer();
+
+        await startOrderStatusConsumer();
+
+        app.listen(port, () => {
+            console.log(`🚀 Server started on http://localhost:${port}`);
+        });
+
+    } catch (error) {
+        console.error("Server Startup Error:", error);
+        process.exit(1);
+    }
+};
+
+startServer();

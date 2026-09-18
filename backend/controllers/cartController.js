@@ -1,7 +1,7 @@
 import { CartItem } from "../models/cartModel.js";
 import createError from "http-errors";
 
-// ✅ Get all cart items for user
+// Get all cart items for user
 export const getCart = async (req, res, next) => {
   try {
     const items = await CartItem.find({ user: req.user._id }).populate({
@@ -15,14 +15,14 @@ export const getCart = async (req, res, next) => {
       quantity: ci.quantity,
     }));
 
-    // console.log("📦 Cart fetched for user:", req.user._id, formatted.length);
+    // console.log("Cart fetched for user:", req.user._id, formatted.length);
     res.json(formatted);
   } catch (error) {
     next(error);
   }
 };
 
-// ✅ Add to cart
+//  Add to cart
 export const addToCart = async (req, res, next) => {
   try {
     const { productId, itemId, quantity } = req.body;
@@ -73,7 +73,7 @@ export const addToCart = async (req, res, next) => {
   }
 };
 
-// ✅ Update quantity
+//  Update quantity
 export const updateCartItem = async (req, res, next) => {
   try {
     const { quantity } = req.body;
@@ -98,7 +98,7 @@ export const updateCartItem = async (req, res, next) => {
   }
 };
 
-// ✅ Delete item
+// Delete item
 export const deleteCartItem = async (req, res, next) => {
   try {
     const cartItem = await CartItem.findOne({
@@ -115,7 +115,7 @@ export const deleteCartItem = async (req, res, next) => {
   }
 };
 
-// ✅ Clear cart
+//  Clear cart
 export const clearCart = async (req, res, next) => {
   try {
     await CartItem.deleteMany({ user: req.user._id });

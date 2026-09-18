@@ -27,7 +27,7 @@ const ItemsHome = () => {
   // Fetch all products
   useEffect(() => {
     axios
-      .get("https://grocerystore-backend-57i5.onrender.com/api/items")
+      .get("http://localhost:4000/api/items")
       .then((res) => {
         const normalized = res.data.map((p) => ({
           ...p,
@@ -226,7 +226,7 @@ const ItemsHome = () => {
                   <div key={product.id} className={itemsHomeStyles.productCard}>
                     <div className={itemsHomeStyles.imageContainer}>
                       <img
-                        src={`https://grocerystore-backend-57i5.onrender.com${product.imageUrl}`}
+                        src={`http://localhost:4000${product.imageUrl}`}
                         alt={product.name}
                         className={itemsHomeStyles.productImage}
                         onError={(e) => {

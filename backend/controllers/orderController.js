@@ -3,6 +3,8 @@ import Order from "../models/orderModel.js";
 import { sendOrderEmail } from "../utils/emailService.js";
 import PDFDocument from "pdfkit";
 import { v4 as uuidv4 } from "uuid";
+import { publishOrderCreated, publishOrderStatusUpdated } from "../rabbitmq/producers/orderProducer.js";
+
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -63,7 +65,9 @@ export const createOrder = async (req, res) => {
       });
 
       await newOrder.save();
-      return res.status(201).json({ order: newOrder, checkoutUrl: session.url });
+      return res
+        .status(201)
+        .json({ order: newOrder, checkoutUrl: session.url });
     }
 
     // CASH ON DELIVERY
@@ -80,6 +84,8 @@ export const createOrder = async (req, res) => {
     });
 
     await newOrder.save();
+    await publishOrderCreated(newOrder);
+
     res.status(201).json({ order: newOrder, checkoutUrl: null });
   } catch (error) {
     console.error("Create Order Error", error);
@@ -91,7 +97,8 @@ export const createOrder = async (req, res) => {
 export const confirmPayment = async (req, res) => {
   try {
     const { session_id } = req.query;
-    if (!session_id) return res.status(400).json({ message: "session_id required" });
+    if (!session_id)
+      return res.status(400).json({ message: "session_id required" });
 
     const session = await stripe.checkout.sessions.retrieve(session_id);
     if (session.payment_status !== "paid") {
@@ -99,12 +106,13 @@ export const confirmPayment = async (req, res) => {
     }
 
     const order = await Order.findOneAndUpdate(
-      { sessionId: session_id },
+      { sessionId: session_id, paymentStatus: "Unpaid" },
       { paymentStatus: "Paid" },
-      { new: true }
+      { new: true },
     );
 
     if (!order) return res.status(404).json({ message: "Order not found" });
+    await publishOrderCreated(order);
 
     res.json(order);
   } catch (error) {
@@ -146,25 +154,23 @@ export const updateOrder = async (req, res, next) => {
       if (req.body[field] !== undefined) updateData[field] = req.body[field];
     });
 
-    const updated = await Order.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    const updated = await Order.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updated) {
       return res.status(404).json({ message: "Order not found" });
     }
 
     if (req.body.status) {
-     await sendOrderEmail(
-  updated.customer.email,
-  updated.orderId,
-  req.body.status,
-  updated.items,
-  updated.total
-);
-
+      await publishOrderStatusUpdated({
+        orderId: updated.orderId,
+        customerEmail: updated.customer.email,
+        status: updated.status,
+        items: updated.items,
+        total: updated.total,
+      });
     }
 
     res.json(updated);
@@ -187,7 +193,7 @@ export const deleteOrder = async (req, res, next) => {
   }
 };
 
-//  Invoice PDF 
+//  Invoice PDF
 export const generateInvoice = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -198,19 +204,30 @@ export const generateInvoice = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=invoice_${order.orderId}.pdf`
+      `attachment; filename=invoice_${order.orderId}.pdf`,
     );
 
     doc.pipe(res);
 
     // Header
-    doc.fontSize(20).fillColor("#0D7C66").text("GroceryStore", { align: "center" });
-    doc.fontSize(10).fillColor("#555")
+    doc
+      .fontSize(20)
+      .fillColor("#0D7C66")
+      .text("GroceryStore", { align: "center" });
+    doc
+      .fontSize(10)
+      .fillColor("#555")
       .text("123 Supermarket Road, Patna, Bihar", { align: "center" })
-      .text("Phone: +91-9876543210 | GSTIN: 09AABCU9603R1ZM", { align: "center" })
+      .text("Phone: +91-9876543210 | GSTIN: 09AABCU9603R1ZM", {
+        align: "center",
+      })
       .moveDown(1.2);
 
-    doc.fontSize(14).fillColor("#0D7C66").text("INVOICE", { align: "center", underline: true }).moveDown(1);
+    doc
+      .fontSize(14)
+      .fillColor("#0D7C66")
+      .text("INVOICE", { align: "center", underline: true })
+      .moveDown(1);
 
     // Order Info
     doc.fontSize(11).fillColor("black");
@@ -222,7 +239,11 @@ export const generateInvoice = async (req, res) => {
     doc.text(`Address: ${order.customer.address}`).moveDown(1);
 
     // Table Header
-    doc.fontSize(12).fillColor("#0D7C66").text("Items Purchased", { underline: true }).moveDown(0.5);
+    doc
+      .fontSize(12)
+      .fillColor("#0D7C66")
+      .text("Items Purchased", { underline: true })
+      .moveDown(0.5);
     const tableTop = doc.y;
     doc.fontSize(10).fillColor("black");
 
@@ -230,7 +251,10 @@ export const generateInvoice = async (req, res) => {
     doc.text("Qty", 230, tableTop);
     doc.text("Price", 300, tableTop);
     doc.text("Total", 380, tableTop);
-    doc.moveTo(45, tableTop + 12).lineTo(550, tableTop + 12).stroke("#0D7C66");
+    doc
+      .moveTo(45, tableTop + 12)
+      .lineTo(550, tableTop + 12)
+      .stroke("#0D7C66");
 
     // Items
     let y = tableTop + 20;
@@ -248,13 +272,17 @@ export const generateInvoice = async (req, res) => {
     const delivery = (order.total * 0.05).toFixed(2);
     const grand = (order.total * 1.05).toFixed(2);
 
-    doc.fontSize(11).text(`Subtotal: Rs. ${order.total.toFixed(2)}`, { align: "right" });
+    doc
+      .fontSize(11)
+      .text(`Subtotal: Rs. ${order.total.toFixed(2)}`, { align: "right" });
     doc.text(`Delivery Charges: Rs. ${delivery}`, { align: "right" });
     doc.text(`Grand Total: Rs. ${grand}`, { align: "right", underline: true });
 
     // Footer
     doc.moveDown(2);
-    doc.fontSize(10).fillColor("gray")
+    doc
+      .fontSize(10)
+      .fillColor("gray")
       .text("Thank you for shopping with us!", { align: "center" })
       .text("Visit again <3", { align: "center" });
 

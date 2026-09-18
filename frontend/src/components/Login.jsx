@@ -57,7 +57,7 @@ const Login = () => {
 
           try {
             const response = await axios.post(
-               'https://grocerystore-backend-57i5.onrender.com/api/user/login',
+               'http://localhost:4000/api/user/login',
         {
           email: formData.email,
           password: formData.password,
@@ -151,8 +151,8 @@ const Login = () => {
                   Remember me
                 </label>
 
-                <Link to="#" className={loginStyles.forgotLink}>
-                Forgot?
+                <Link to="/forgot-password" className={loginStyles.forgotLink}>
+                Forgot Password?
                 </Link>
 
              </div>

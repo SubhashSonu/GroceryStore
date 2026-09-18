@@ -77,7 +77,7 @@ const Signup = () => {
 
     try {
       const res = await axios.post(
-        'https://grocerystore-backend-57i5.onrender.com/api/user/register',
+        'http://localhost:4000/api/user/register',
         {
           name: formData.name,
           email: formData.email,

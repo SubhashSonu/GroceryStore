@@ -27,7 +27,7 @@ export default async function authMiddleware(req, res, next) {
                 message: "User no longer exists"
             });
         }
-
+    
         req.user = user;
         next();
     } catch (error) {
