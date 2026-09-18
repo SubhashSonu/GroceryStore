@@ -39,23 +39,21 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  
   useEffect(() => {
-  const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken");
 
-  if (token) {
-    fetchCart();
-  } else {
-    setLoading(false);
-  }
-}, []);
-
+    if (token) {
+      fetchCart();
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const handler = () => {
       const token = localStorage.getItem("authToken");
       if (token) {
-        fetchCart(); 
+        fetchCart();
       } else {
         setCart([]);
       }
@@ -65,38 +63,41 @@ export const CartProvider = ({ children }) => {
     return () => window.removeEventListener("authStateChanged", handler);
   }, []);
 
-const fetchCart = async () => {
-  const token = localStorage.getItem("authToken");
+  const fetchCart = async () => {
+    const token = localStorage.getItem("authToken");
 
-  // Don't fetch cart if user is not logged in
-  if (!token) {
-    setCart([]);
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const { data } = await axios.get("http://localhost:4000/api/cart", {
-      ...getAuthHeader(),
-      withCredentials: true,
-    });
-
-    const rawItems = Array.isArray(data)
-      ? data
-      : data.items || data.cart?.items || [];
-
-    setCart(normalizeItems(rawItems));
-  } catch (error) {
-    console.error("Error fetching cart:", error.response?.data || error);
-
-    // Don't show toast for unauthorized user
-    if (error.response?.status !== 401) {
-      toast.error("Failed to load cart");
+    // Don't fetch cart if user is not logged in
+    if (!token) {
+      setCart([]);
+      setLoading(false);
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
+
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/cart`,
+        {
+          ...getAuthHeader(),
+          withCredentials: true,
+        },
+      );
+
+      const rawItems = Array.isArray(data)
+        ? data
+        : data.items || data.cart?.items || [];
+
+      setCart(normalizeItems(rawItems));
+    } catch (error) {
+      console.error("Error fetching cart:", error.response?.data || error);
+
+      // Don't show toast for unauthorized user
+      if (error.response?.status !== 401) {
+        toast.error("Failed to load cart");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addToCart = async (productId, quantity = 1) => {
     const prevCart = [...cart];
@@ -107,7 +108,7 @@ const fetchCart = async () => {
         return prev.map((item) =>
           item.productId === productId
             ? { ...item, quantity: item.quantity + quantity }
-            : item
+            : item,
         );
       }
       return [
@@ -118,16 +119,16 @@ const fetchCart = async () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:4000/api/cart",
+        `${import.meta.env.VITE_BACKEND_URL}/api/cart`,
         { productId, quantity: Number(quantity) },
-        getAuthHeader()
+        getAuthHeader(),
       );
 
       const normalized = normalizeItems([data.item || data])[0];
       setCart((prev) =>
         prev.map((item) =>
-          item.productId === normalized.productId ? normalized : item
-        )
+          item.productId === normalized.productId ? normalized : item,
+        ),
       );
 
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
@@ -142,16 +143,16 @@ const fetchCart = async () => {
     const prevCart = [...cart];
     setCart((prev) =>
       prev.map((item) =>
-        item.id === lineId ? { ...item, quantity: Number(quantity) } : item
-      )
+        item.id === lineId ? { ...item, quantity: Number(quantity) } : item,
+      ),
     );
 
     try {
-      await axios.put(
-        `http://localhost:4000/api/cart/${lineId}`,
-        { quantity },
-        getAuthHeader()
-      );
+     await axios.put(
+  `${import.meta.env.VITE_BACKEND_URL}/api/cart/${lineId}`,
+  { quantity },
+  getAuthHeader(),
+);
       toast.success("Quantity updated");
     } catch (error) {
       setCart(prevCart);
@@ -164,10 +165,10 @@ const fetchCart = async () => {
     setCart((prev) => prev.filter((item) => item.id !== lineId));
 
     try {
-      await axios.delete(
-        `http://localhost:4000/api/cart/${lineId}`,
-        getAuthHeader()
-      );
+    await axios.delete(
+  `${import.meta.env.VITE_BACKEND_URL}/api/cart/${lineId}`,
+  getAuthHeader(),
+);
       toast.success("Item removed");
     } catch (error) {
       setCart(prevCart);
@@ -180,11 +181,11 @@ const fetchCart = async () => {
     setCart([]);
 
     try {
-      await axios.post(
-        "http://localhost:4000/api/cart/clear",
-        {},
-        getAuthHeader()
-      );
+await axios.post(
+  `${import.meta.env.VITE_BACKEND_URL}/api/cart/clear`,
+  {},
+  getAuthHeader(),
+);
       toast.success("Cart cleared");
     } catch (error) {
       setCart(prevCart);

@@ -52,14 +52,14 @@ const email =
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:4000/api/user/reset-password",
-        {
-          email: email.trim(),
-          otp: otp.trim(),
-          newPassword,
-        },
-      );
+     const { data } = await axios.post(
+  `${import.meta.env.VITE_BACKEND_URL}/api/user/reset-password`,
+  {
+    email: email.trim(),
+    otp: otp.trim(),
+    newPassword,
+  },
+);
 
       if (data.success) {
         setShowToast(true);

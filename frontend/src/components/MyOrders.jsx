@@ -27,7 +27,9 @@ const MyOrders = () => {
   // fetch orders
   const fetchAndFilteredOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/orders");
+      const res = await axios.get(
+  `${import.meta.env.VITE_BACKEND_URL}/api/orders`
+);
       const allOrders = res.data;
 
       const mine = allOrders.filter(
@@ -72,14 +74,14 @@ const downloadInvoice = async (orderId) => {
 
   try {
     const res = await axios.get(
-      `http://localhost:4000/api/orders/${orderId}/invoice`,
-      {
-        responseType: "blob", // important for file
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+  `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}/invoice`,
+  {
+    responseType: "blob",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
     const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
     const link = document.createElement("a");
@@ -328,7 +330,7 @@ const downloadInvoice = async (orderId) => {
                       >
                         {item.imageUrl ? (
                           <img
-                            src={`http://localhost:4000${item.imageUrl}`}
+                            src={`${import.meta.env.VITE_BACKEND_URL}${item.imageUrl}`}
                             alt={item.name}
                             className="w-16 h-16 object-cover mr-4"
                           />

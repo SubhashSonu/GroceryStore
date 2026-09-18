@@ -19,19 +19,20 @@ const PaymentVerify = () => {
       return;
     }
 
-    axios.get(`http://localhost:4000/api/orders/confirm`, {
-      params: { session_id },
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-    .then((res) => {
-      clearCart();
-      const orderId = res.data?.orderId || res.data?._id || "N/A";
-      navigate("/order-success", { replace: true, state: { orderId } });
-    })
-    .catch(() => {
-      setStatusMsg("Payment failed, redirecting...");
-      setTimeout(() => navigate("/checkout"), 2000);
-    });
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/orders/confirm`, {
+        params: { session_id },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      .then((res) => {
+        clearCart();
+        const orderId = res.data?.orderId || res.data?._id || "N/A";
+        navigate("/order-success", { replace: true, state: { orderId } });
+      })
+      .catch(() => {
+        setStatusMsg("Payment failed, redirecting...");
+        setTimeout(() => navigate("/checkout"), 2000);
+      });
   }, [search, clearCart, navigate]);
 
   return (

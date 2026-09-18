@@ -26,13 +26,16 @@ const ListItemPage = () => {
   useEffect(() => {
     const loadItems = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/api/items");
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/items`,
+        );
+
         const data = response.data;
 
         const withUrls = data.map((item) => ({
           ...item,
           imageUrl: item.imageUrl
-            ? `http://localhost:4000${item.imageUrl}`
+            ? `${import.meta.env.VITE_BACKEND_URL}${item.imageUrl}`
             : null,
         }));
 
@@ -55,7 +58,7 @@ const ListItemPage = () => {
       setFilteredItems(items);
     } else {
       setFilteredItems(
-        items.filter((item) => item.category === selectedCategory)
+        items.filter((item) => item.category === selectedCategory),
       );
     }
   }, [selectedCategory, items]);
@@ -65,14 +68,14 @@ const ListItemPage = () => {
     if (!window.confirm("Delete this product?")) return;
 
     try {
-      await axios.delete(`http://localhost:4000/api/items/${id}`);
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/items/${id}`);
       setItems((prev) => prev.filter((i) => i._id !== id));
       setFilteredItems((prev) => prev.filter((i) => i._id !== id));
     } catch (error) {
       console.error(
         "Delete Failed:",
         error.response?.status,
-        error.response?.data
+        error.response?.data,
       );
       alert(`Delete Failed: ${error.response?.data?.message || error.message}`);
     }
@@ -155,64 +158,58 @@ const ListItemPage = () => {
                   </tr>
                 </thead>
                 <tbody className={styles.tableBody}>
-                  {
-                    filteredItems.map((item)=>(
-                       <tr key={item._id} className={styles.tableRowHover}>
-                        <td className={styles.tableDataCell}>
-                          <div className={styles.productCell}>
-                            {
-                              item.imageUrl ? (
-                                <img src={item.imageUrl} alt={item.name} className={styles.productImage}/>
-                              ): (
-                                <div className={styles.placeholderImage}/>
-                              )
-                            }
-                            <div>
-                              <div className={styles.productName}>
-                                {item.name}
-                              </div>
-                              <div className={styles.productDescription}>
-                                  {item.description}
-                              </div>
+                  {filteredItems.map((item) => (
+                    <tr key={item._id} className={styles.tableRowHover}>
+                      <td className={styles.tableDataCell}>
+                        <div className={styles.productCell}>
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className={styles.productImage}
+                            />
+                          ) : (
+                            <div className={styles.placeholderImage} />
+                          )}
+                          <div>
+                            <div className={styles.productName}>
+                              {item.name}
                             </div>
-
+                            <div className={styles.productDescription}>
+                              {item.description}
+                            </div>
                           </div>
+                        </div>
+                      </td>
+                      <td className={styles.tableDataCell}>
+                        <span className={styles.categoryText}>
+                          {item.category}
+                        </span>
+                      </td>
 
-                        </td>
-                         <td className={styles.tableDataCell}>
-                          <span className={styles.categoryText}>
-                           {item.category}
-                          </span>
-
-                        </td>
-
-                        <td className={styles.tableDataCell}>
-                          <div className={styles.price}>
-                            ₹{item.price.toFixed(2)}
+                      <td className={styles.tableDataCell}>
+                        <div className={styles.price}>
+                          ₹{item.price.toFixed(2)}
+                        </div>
+                        {item.oldPrice > item.price && (
+                          <div className={styles.oldPrice}>
+                            ₹{item.oldPrice.toFixed(2)}
                           </div>
-                          {
-                            item.oldPrice > item.price && (
-                              <div className={styles.oldPrice}>
-                                  ₹{item.oldPrice.toFixed(2)}
-                              </div>
-                            )
-                          }
+                        )}
+                      </td>
 
-                        </td>
-
-                        <td className={styles.tableDataCell}>
-                          <div className={styles.actionButtons}>
-                            <button onClick={ ()=> handleDelete(item._id)} className={styles.deleteButton}>
-                             <FiTrash2 size={18}/>
-                            </button>
-
-                          </div>
-
-                        </td>
-
-                       </tr>
-                    ))
-                  }
+                      <td className={styles.tableDataCell}>
+                        <div className={styles.actionButtons}>
+                          <button
+                            onClick={() => handleDelete(item._id)}
+                            className={styles.deleteButton}
+                          >
+                            <FiTrash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

@@ -15,7 +15,9 @@ const CartPage = () => {
   const getItemName  = item => item.name  ?? item.product?.name  ?? 'Unnamed item';
   const getItemImage = item => {
     const path = item.image   ?? item.product?.imageUrl ?? '';
-    return path ? `http://localhost:4000${path}` : '';
+   return path
+  ? `${import.meta.env.VITE_BACKEND_URL}${path}`
+  : '';
   };
 
   // subtotal

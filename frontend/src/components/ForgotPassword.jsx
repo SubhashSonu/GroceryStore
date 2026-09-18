@@ -22,9 +22,9 @@ const ForgotPassword = () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:4000/api/user/forgot-password",
-        { email: email.trim(), },
-      );
+  `${import.meta.env.VITE_BACKEND_URL}/api/user/forgot-password`,
+  { email: email.trim() },
+);
 
       if (data.success) {
         setShowToast(true);

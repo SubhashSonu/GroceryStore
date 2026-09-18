@@ -8,7 +8,7 @@ import { groceryData } from "../assets/dummyDataItem";
 import axios from "axios";
 
 
-const BACKEND_URL = 'http://localhost:4000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // ---------------- PRODUCT CARD ----------------
 const ProductCard = ({ item }) => {

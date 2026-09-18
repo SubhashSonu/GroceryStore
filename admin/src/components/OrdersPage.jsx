@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { ordersPageStyles as styles } from "../assets/adminStyles";
-import { FiCheck, FiCreditCard, FiEdit, FiMail, FiMapPin, FiPackage, FiPhone, FiTruck, FiUser, FiX } from "react-icons/fi";
+import {
+  FiCheck,
+  FiCreditCard,
+  FiEdit,
+  FiMail,
+  FiMapPin,
+  FiPackage,
+  FiPhone,
+  FiTruck,
+  FiUser,
+  FiX,
+} from "react-icons/fi";
 import { BsCurrencyRupee } from "react-icons/bs";
-import axios from 'axios';
+import axios from "axios";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -22,73 +33,82 @@ const OrdersPage = () => {
     "Cancelled",
   ];
 
-  const fetchOrders  = async()=>{
+  const fetchOrders = async () => {
     try {
-      const {data} = await axios.get("http://localhost:4000/api/orders");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/orders`,
+      );
       setOrders(data);
       setFilteredOrders(data);
     } catch (error) {
-      console.error("Error in fetching orders:",error)
+      console.error("Error in fetching orders:", error);
     }
-  }
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchOrders();
-  },[]);
+  }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     let result = [...orders];
 
-    if(searchTerm){
+    if (searchTerm) {
       const term = searchTerm.toLowerCase();
 
-       result = result.filter(order =>
-        order.id.toLowerCase().includes(term) ||
-        order.customer.name.toLowerCase().includes(term) ||
-        order.customer.phone.includes(term) ||
-        (order.customer.email && order.customer.email.toLowerCase().includes(term)))
-    };
-    
-    if(statusFilter !== "All"){
+      result = result.filter(
+        (order) =>
+          order.id.toLowerCase().includes(term) ||
+          order.customer.name.toLowerCase().includes(term) ||
+          order.customer.phone.includes(term) ||
+          (order.customer.email &&
+            order.customer.email.toLowerCase().includes(term)),
+      );
+    }
+
+    if (statusFilter !== "All") {
       result = result.filter((order) => order.status === statusFilter);
     }
     setFilteredOrders(result);
-  },[orders, searchTerm, statusFilter, paymentFilter]);
-
+  }, [orders, searchTerm, statusFilter, paymentFilter]);
 
   // update the order using id
-  const updateOrderStatus = async(orderId, newStatus)=>{
+  const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await axios.put(`http://localhost:4000/api/orders/${orderId}`,{status: newStatus});
-      setOrders((prev)=>
-      prev.map((order) =>
-      order._id === orderId ? {...order, status: newStatus}: order));
-    
-      setFilteredOrders((prev) =>
-         prev.map((order) =>
-      order._id === orderId ? {...order, status: newStatus}: order));
-      
-      
-    } catch (error) {
-      console.error("Error updating order status:",error);
-    }
-  }
-  
-  // cancel orders
-  const cancelOrder = (orderId)=>{
-    updateOrderStatus(orderId, 'Cancelled');
-  }
-  
-  // model open for more details
-  const viewOrderDetails = (order)=>{
-        setSelectedOrder(order);
-        setIsDetailModalOpen(true);
-  }
+      await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}`,
+        { status: newStatus },
+      );
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order,
+        ),
+      );
 
-  const closeModal = ()=>{
+      setFilteredOrders((prev) =>
+        prev.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order,
+        ),
+      );
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    }
+  };
+
+  // cancel orders
+  const cancelOrder = (orderId) => {
+    updateOrderStatus(orderId, "Cancelled");
+  };
+
+  // model open for more details
+  const viewOrderDetails = (order) => {
+    setSelectedOrder(order);
+    setIsDetailModalOpen(true);
+  };
+
+  const closeModal = () => {
     setIsDetailModalOpen(false);
     setSelectedOrder(null);
-  }
+  };
 
   return (
     <div className={styles.pageContainer}>
@@ -188,71 +208,89 @@ const OrdersPage = () => {
               </thead>
 
               <tbody className={styles.tableBody}>
-                {
-                  filteredOrders.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" className={styles.emptyStateCell}>
-                        <div className={styles.emptyStateContainer}>
-                          <FiPackage className={styles.emptyStateIcon}/>
-                          <h3 className={styles.emptyStateTitle}>No orders found</h3>
-                          <p className={styles.emptyStateText}>Try changing your filters</p>
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className={styles.emptyStateCell}>
+                      <div className={styles.emptyStateContainer}>
+                        <FiPackage className={styles.emptyStateIcon} />
+                        <h3 className={styles.emptyStateTitle}>
+                          No orders found
+                        </h3>
+                        <p className={styles.emptyStateText}>
+                          Try changing your filters
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <tr key={order._id} className={styles.tableRowHover}>
+                      <td
+                        className={`${styles.tableDataCell} ${styles.orderId}`}
+                      >
+                        {order.orderId}
+                      </td>
+
+                      <td className={styles.tableDataCell}>
+                        <div className="font-medium">{order.customer.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {order.customer.phone}
+                        </div>
+                      </td>
+
+                      <td
+                        className={`${styles.tableDataCell} text-sm text-gray-500`}
+                      >
+                        {order.date}
+                      </td>
+                      <td
+                        className={`${styles.tableDataCell} text-sm text-gray-500`}
+                      >
+                        {order.items.length} items
+                      </td>
+                      <td className={`${styles.tableDataCell} font-medium`}>
+                        ₹{order.total.toFixed(2)}
+                      </td>
+                      <td className={styles.tableDataCell}>
+                        <span className={styles.statusBadge(order.status)}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className={styles.tableDataCell}>
+                        <span
+                          className={styles.paymentBadge(order.paymentStatus)}
+                        >
+                          {order.paymentStatus}
+                        </span>
+                      </td>
+
+                      <td className={styles.tableDataCell}>
+                        <div className={styles.actionButtons}>
+                          <button
+                            className={styles.viewButton}
+                            onClick={() => viewOrderDetails(order)}
+                          >
+                            View
+                          </button>
+
+                          <button
+                            className={styles.cancelButton(
+                              order.status === "Cancelled" ||
+                                order.status === "Delivered",
+                            )}
+                            disabled={
+                              order.status === "Cancelled" ||
+                              order.status === "Delivered"
+                            }
+                            onClick={() => cancelOrder(order._id)}
+                          >
+                            Cancel
+                          </button>
                         </div>
                       </td>
                     </tr>
-                  ) : (
-                    filteredOrders.map(order => (
-                      <tr key={order._id} className={styles.tableRowHover}>
-                        <td className={`${styles.tableDataCell} ${styles.orderId}`}>
-                         {order.orderId}
-                        </td>
-
-                        <td className={styles.tableDataCell}>
-                          <div className='font-medium'>{order.customer.name}</div>
-                          <div className="text-sm text-gray-500">
-                            {order.customer.phone}
-                            </div>
-                        </td>
-
-                        <td className={`${styles.tableDataCell} text-sm text-gray-500`}>
-                               {order.date}
-                        </td>
-                        <td className={`${styles.tableDataCell} text-sm text-gray-500`}>
-                               {order.items.length} items
-                        </td>
-                        <td className={`${styles.tableDataCell} font-medium`}>
-                                 ₹{order.total.toFixed(2)}
-                        </td>
-                        <td className={styles.tableDataCell}>
-                          <span className={styles.statusBadge(order.status)}>
-                             {order.status}
-                          </span>
-                        </td>
-                        <td className={styles.tableDataCell}>
-                          <span className={styles.paymentBadge(order.paymentStatus)}>
-                             {order.paymentStatus}
-                          </span>
-                        </td>
-
-                        <td className={styles.tableDataCell}>
-                          <div className={styles.actionButtons}>
-                            <button className={styles.viewButton}
-                             onClick={()=> viewOrderDetails(order)}>
-                              View
-                            </button>
-
-                            <button className={styles.cancelButton(order.status === 'Cancelled' || order.status === 'Delivered')} disabled={order.status === 'Cancelled' || order.status === 'Delivered'} onClick={ ()=> cancelOrder(order._id)}>
-                            Cancel
-                            </button>
-
-                          </div>
-
-                        </td>
-
-                      </tr>
-                    ))
-                  )
-                }
-
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -269,13 +307,16 @@ const OrdersPage = () => {
                 <h2 className={styles.modalHeaderTitle}>
                   Order Details: {selectedOrder._id}
                 </h2>
-                <button onClick={closeModal} className={styles.modalHeaderClose}>
-                  <FiX size={24}/>
+                <button
+                  onClick={closeModal}
+                  className={styles.modalHeaderClose}
+                >
+                  <FiX size={24} />
                 </button>
               </div>
 
               <p className="text-gray-600 mt-1">
-                 Ordered on {selectedOrder.date}
+                Ordered on {selectedOrder.date}
               </p>
             </div>
 
@@ -286,8 +327,8 @@ const OrdersPage = () => {
                 <div>
                   <div className={styles.modalSection}>
                     <h3 className={styles.modalSectionTitle}>
-                      <FiUser className={styles.modalIcon}/>
-                    Customer Information
+                      <FiUser className={styles.modalIcon} />
+                      Customer Information
                     </h3>
 
                     <div className={styles.modalInfoBox}>
@@ -296,39 +337,39 @@ const OrdersPage = () => {
                           {selectedOrder.customer.name}
                         </div>
                         <div className="text-gray-600 flex items-center mt-1">
-                          <FiMail className="mr-2 flex-shrink-0"/>
-                          {selectedOrder.customer.email || 'No email Provided'}
+                          <FiMail className="mr-2 flex-shrink-0" />
+                          {selectedOrder.customer.email || "No email Provided"}
                         </div>
                         <div className="text-gray-600 flex items-center mt-1">
-                          <FiPhone className="mr-2 flex-shrink-0"/>
+                          <FiPhone className="mr-2 flex-shrink-0" />
                           {selectedOrder.customer.phone}
                         </div>
                       </div>
 
                       <div className="flex items-start mt-3">
-                        <FiMapPin className="text-gray-500 mr-2 flex-shrink-0"/>
-                         <div className="text-gray-600">
-                         {selectedOrder.customer.address}
-                         </div>
+                        <FiMapPin className="text-gray-500 mr-2 flex-shrink-0" />
+                        <div className="text-gray-600">
+                          {selectedOrder.customer.address}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                   {/* Order Notes */}
-                   {selectedOrder.notes && (
+                  {/* Order Notes */}
+                  {selectedOrder.notes && (
                     <div className={styles.modalSection}>
                       <h3 className={styles.modalSectionTitle}>
-                        <FiEdit className={styles.modalIcon}/>
-                       Delivery Notes
+                        <FiEdit className={styles.modalIcon} />
+                        Delivery Notes
                       </h3>
                       <div className={styles.modalNoteBox}>
                         <p className="text-gray-700">{selectedOrder.notes}</p>
                       </div>
                     </div>
-                   )}
+                  )}
 
-                   {/* Status Controls */}
-                   <div className={styles.modalSection}>
+                  {/* Status Controls */}
+                  <div className={styles.modalSection}>
                     <h3 className={styles.modalSectionTitle}>
                       Update Order Status
                     </h3>
@@ -337,71 +378,88 @@ const OrdersPage = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Order Status
                         </label>
-                        
+
                         <select
-                        value={selectedOrder.status} 
-                        onChange={(e)=>{
-                          const newStatus = e.target.value;
-                          setSelectedOrder({...selectedOrder,status: newStatus});
-                          updateOrderStatus(selectedOrder._id,newStatus);
-                        }} className={styles.modalSelect}>
-
-                          {statusOptions.filter(o=> o!=='All').map(option => (
-                            <option value={option} key={option}>
-                               {option}
-                            </option>
-                          ))}
-
+                          value={selectedOrder.status}
+                          onChange={(e) => {
+                            const newStatus = e.target.value;
+                            setSelectedOrder({
+                              ...selectedOrder,
+                              status: newStatus,
+                            });
+                            updateOrderStatus(selectedOrder._id, newStatus);
+                          }}
+                          className={styles.modalSelect}
+                        >
+                          {statusOptions
+                            .filter((o) => o !== "All")
+                            .map((option) => (
+                              <option value={option} key={option}>
+                                {option}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     </div>
-                   </div>
-                </div> 
+                  </div>
+                </div>
 
                 {/* Right Side       */}
                 <div>
                   <div className={styles.modalSection}>
                     <h3 className={styles.modalSectionTitle}>
-                      <FiPackage className={styles.modalIcon}/>
+                      <FiPackage className={styles.modalIcon} />
                       Order Summary
                     </h3>
 
                     <div className={styles.modalOrderSummary}>
-                        {selectedOrder.items.map((item,index) =>(
-                          <div key={item._id || index} className={styles.modalOrderItem(index, selectedOrder.items.length)}>
-                            {item.imageUrl ? (
-                              <img src={`http://localhost:4000${item.imageUrl}`} alt={item.name} className={styles.modalOrderImage}/>
-                            ) : (
-                              <div className={styles.modalPlaceholderImage}/>
-                            )}
+                      {selectedOrder.items.map((item, index) => (
+                        <div
+                          key={item._id || index}
+                          className={styles.modalOrderItem(
+                            index,
+                            selectedOrder.items.length,
+                          )}
+                        >
+                          {item.imageUrl ? (
+                            <img
+                              src={`${import.meta.env.VITE_BACKEND_URL}${item.imageUrl}`}
+                              alt={item.name}
+                              className={styles.modalOrderImage}
+                            />
+                          ) : (
+                            <div className={styles.modalPlaceholderImage} />
+                          )}
 
-                            <div className="flex-grow">
-                              <div className="font-medium">
-                              {item.name}
-                              </div>
-                              <div className="text-gray-600">
-                                ₹{item.price.toFixed(2)} x {item.quantity}{" "}
-                              </div>
-                            </div>
-                            <div>
-                              ₹{(item.price*item.quantity).toFixed(2)}
+                          <div className="flex-grow">
+                            <div className="font-medium">{item.name}</div>
+                            <div className="text-gray-600">
+                              ₹{item.price.toFixed(2)} x {item.quantity}{" "}
                             </div>
                           </div>
-                        ))}
+                          <div>₹{(item.price * item.quantity).toFixed(2)}</div>
+                        </div>
+                      ))}
 
-                        {/* Order Totals */}
-                           <div className={styles.modalOrderTotalSection}>
+                      {/* Order Totals */}
+                      <div className={styles.modalOrderTotalSection}>
                         <div className={styles.modalOrderTotalRow}>
                           <span className="text-gray-600">Subtotal</span>
-                          <span className="font-medium">₹{selectedOrder.total.toFixed(2)}</span>
+                          <span className="font-medium">
+                            ₹{selectedOrder.total.toFixed(2)}
+                          </span>
                         </div>
                         <div className={styles.modalOrderTotalRow}>
                           <span className="text-gray-600">Shipping</span>
-                          <span className="font-medium text-emerald-600">Free</span>
+                          <span className="font-medium text-emerald-600">
+                            Free
+                          </span>
                         </div>
                         <div className={styles.modalOrderTotalRow}>
                           <span className="text-gray-600">Tax (5%)</span>
-                          <span className="font-medium">₹{(selectedOrder.total * 0.05).toFixed(2)}</span>
+                          <span className="font-medium">
+                            ₹{(selectedOrder.total * 0.05).toFixed(2)}
+                          </span>
                         </div>
                         <div className={styles.modalOrderTotalRowLast}>
                           <span className="text-lg font-bold">Total</span>
@@ -414,28 +472,32 @@ const OrdersPage = () => {
                   </div>
 
                   {/* Payment Info */}
-                 <div>
-                   <h3 className={styles.modalSectionTitle}>
-                    <FiCreditCard className={styles.modalIcon}/>
-                    Payment Information
-                  </h3>
+                  <div>
+                    <h3 className={styles.modalSectionTitle}>
+                      <FiCreditCard className={styles.modalIcon} />
+                      Payment Information
+                    </h3>
 
-                  <div className={styles.modalInfoBox}>
-                    <div className="flex justify-between mb-3">
-                      <span className="text-gray-600">Payment Method:</span>
-                      <span className="font-medium">{selectedOrder.paymentMethod}</span>
+                    <div className={styles.modalInfoBox}>
+                      <div className="flex justify-between mb-3">
+                        <span className="text-gray-600">Payment Method:</span>
+                        <span className="font-medium">
+                          {selectedOrder.paymentMethod}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Payment Status:</span>
+                        <span
+                          className={styles.paymentBadge(
+                            selectedOrder.paymentStatus,
+                          )}
+                        >
+                          {selectedOrder.paymentStatus}
+                        </span>
+                      </div>
                     </div>
-
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Payment Status:</span>
-                      <span className={styles.paymentBadge(selectedOrder.paymentStatus)}>{selectedOrder.paymentStatus}</span>
-
-                    </div>
-
                   </div>
-
-                 </div>
-
                 </div>
               </div>
             </div>
@@ -443,15 +505,20 @@ const OrdersPage = () => {
             {/* Modal Footer */}
             <div className={styles.modalFooter}>
               <div className="flex justify-end space-x-3">
-                <button className={styles.modalFooterButton} onClick={closeModal}>
+                <button
+                  className={styles.modalFooterButton}
+                  onClick={closeModal}
+                >
                   Close
                 </button>
 
-                <button className={styles.modalFooterPrimaryButton} onClick={closeModal}>
+                <button
+                  className={styles.modalFooterPrimaryButton}
+                  onClick={closeModal}
+                >
                   Save Changes
                 </button>
               </div>
-
             </div>
           </div>
         </div>
