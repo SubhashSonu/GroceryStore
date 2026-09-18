@@ -25,22 +25,25 @@ const __dirname = path.dirname(__filename)
 
 //Middleware
 app.use(cors({
-    origin: (origin,callback)=>{
-        const allowedOrigins = ['https://grocerystore-frontend-deh5.onrender.com','https://grocerystore-admin.onrender.com',"http://localhost:5173","http://localhost:5174"];
-         // !origin- Allow requests with no origin (like Postman or server-to-server)
-         // includes origin - Allow this origin
-        if(!origin || allowedOrigins.includes(origin)){
-            callback(null,true);
-        }
+  origin: (origin, callback) => {
 
-        // block others
-        else {
-      callback(new Error('Not allowed by CORS'));
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      .split(",")
+      .map(origin => origin.trim());
+
+    // Allow requests with no origin (Postman, server-to-server, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     }
-    
-    },
-    credentials: true, // if you are using cookies or authorization headers
-}))
+
+    // Block others
+    else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+
+  credentials: true
+}));
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
