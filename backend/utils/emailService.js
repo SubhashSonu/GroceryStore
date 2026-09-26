@@ -153,16 +153,26 @@
 //   }
 // };
 import nodemailer from "nodemailer";
-import dns from "dns";
+import dns from "node:dns/promises";
 
-dns.setDefaultResultOrder("ipv4first");
+// Resolve Gmail to IPv4 explicitly. Nodemailer's IPv6 fallback can select an
+// address that is unreachable on hosts without IPv6 routing.
+const SMTP_HOSTNAME = "smtp.gmail.com";
+const [SMTP_IPV4] = await dns.resolve4(SMTP_HOSTNAME);
+if (!SMTP_IPV4) {
+  throw new Error(`No IPv4 address found for ${SMTP_HOSTNAME}`);
+}
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: SMTP_IPV4,
   port: 587,
   secure: false,
   requireTLS: true,
-  family: 4,
+  tls: {
+    // Keep certificate validation and SNI tied to Gmail's hostname while the
+    // TCP connection uses the resolved IPv4 address.
+    servername: SMTP_HOSTNAME,
+  },
 
   auth: {
     user: process.env.EMAIL_USER,
